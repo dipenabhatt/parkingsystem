@@ -22,13 +22,9 @@ class ParkingReservationPage extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.setParkingNumber = this.setParkingNumber.bind(this);
         this.getParkingNumber = this.getParkingNumber.bind(this);
+
     }
 
-    static get contextTypes() {
-        return {
-            router: React.PropTypes.object.isRequired
-        };
-    }
 
     onSubmit(e){
         e.preventDefault();
@@ -69,9 +65,13 @@ class ParkingReservationPage extends React.Component {
                 }
             });
         var loggedInUser = cookies.get('username','/');
-        this.setState({
-            username: loggedInUser
-        });
+        if(!loggedInUser){
+            window.location.replace('/login');
+        }else {
+            this.setState({
+                username: loggedInUser
+            });
+        }
     }
 
 

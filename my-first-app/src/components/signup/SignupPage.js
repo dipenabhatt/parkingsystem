@@ -32,7 +32,7 @@ class SignupPage extends React.Component {
         axios.post('http://localhost:8080/user',this.state,config)
             .then(res => {
                 if(res.data){
-                    window.location.replace("/reservation");
+                    window.location.replace("/login");
                 }else{
                     this.setState({error:true})
                 }
