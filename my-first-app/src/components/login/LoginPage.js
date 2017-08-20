@@ -1,6 +1,8 @@
 import React from 'react';
-
+import Cookies from 'universal-cookie';
+const cookies = new Cookies();
 class LoginPage extends React.Component {
+
 
     constructor(props) {
         super(props);
@@ -13,6 +15,8 @@ class LoginPage extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
+
+
 
     onChange(e) {
         this.setState({ [e.target.name]: e.target.value});
@@ -27,7 +31,10 @@ class LoginPage extends React.Component {
         var url = "http://localhost:8080/user/validate?username="+this.state.username+"&password="+this.state.password;
         axios.get(url,config)
             .then(res => {
-                if(res.data){
+                var userData = res.data;
+                if(userData){
+
+                    cookies.set('username', this.state.username, { path: '/' });
                     window.location.replace("/reservation");
                 }else{
                     this.setState({error:true})

@@ -5,7 +5,7 @@ class HomePage extends React.Component {
         return (
             <div className="jumbotron">
                 <h2>Bart Car Parking Reservation System..</h2>
-                <img src="http://www.marseille-airport.com/var/mpaeroport/storage/images/media/images/parking/cheque-parking/72030-1-fre-FR/cheque-parking.jpg" className="img-thumbnail"/>
+                <img src="http://www.marseille-airport.com/var/mpaeroport/storage/images/media/images/parking/cheque-parking/72030-1-fre-FR/cheque-parking.jpg" alt="" className="img-thumbnail"/>
             </div>
         );
     }

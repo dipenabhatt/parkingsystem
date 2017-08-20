@@ -1,4 +1,7 @@
 import React from 'react';
+import Cookies from 'universal-cookie';
+
+const cookies = new Cookies();
 
 class ParkingReservationPage extends React.Component {
 
@@ -8,11 +11,42 @@ class ParkingReservationPage extends React.Component {
         this.state = {
             value: '',
             parkingLots: [],
-            parkingNumbers: []
+            parkingNumbers: [],
+            username:'',
+            parkingLotId:'',
+            parkingNumber:'',
+            error:false
         };
-        //this.onhandlechange = this.onhandlechange.bind(this);
+
+        this.onLotChange = this.onLotChange.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
+        this.setParkingNumber = this.setParkingNumber.bind(this);
+        this.getParkingNumber = this.getParkingNumber.bind(this);
     }
 
+    static get contextTypes() {
+        return {
+            router: React.PropTypes.object.isRequired
+        };
+    }
+
+    onSubmit(e){
+        e.preventDefault();
+        var reservationJson = {parkingLotId:this.state.parkingLotId,parkingNumber:this.state.parkingNumber,username:this.state.username};
+        var url = "http://localhost:8080/parkingslot";
+        const config = { headers: { 'Content-Type': 'application/json' } };
+        var axios = require('axios');
+        axios.post(url,reservationJson,config)
+            .then(res => {
+                if(res.data){
+                    window.location.replace('/success');
+                }else{
+                    this.setState({error:true})
+                }
+            }).catch(error => {
+                this.setState({error:true})
+            });
+    }
 
 
     componentDidMount() {
@@ -29,11 +63,17 @@ class ParkingReservationPage extends React.Component {
 
                     this.setState({
                         value:defValue,
-                        parkingLots : parkingLotData
+                        parkingLots : parkingLotData,
+                        parkingLotId : defValue
                     })
                 }
             });
+        var loggedInUser = cookies.get('username','/');
+        this.setState({
+            username: loggedInUser
+        });
     }
+
 
 
     getParkingNumber(number){
@@ -42,65 +82,38 @@ class ParkingReservationPage extends React.Component {
         axios.get(url)
             .then(res => {
                 var parkingNumbers = res.data;
-
+                var parkingNumber = '';
                 var ent=[];
                 for (var i = 0; i < parkingNumbers.length; i++) {
+
+                    if(i == 0){
+                        parkingNumber = parkingNumbers[i];
+                    }
                     ent.push({value: + parkingNumbers[i]});
                 }
 
-
-
                 this.setState({
-                    parkingNumbers : ent
-                    //posts : [
-                    //    {
-                    //        desc: 'This is option Aa',
-                    //        value: 'a'
-                    //    },
-                    //    {
-                    //        desc: 'This is option Bb',
-                    //        value: 'b'
-                    //    },
-                    //    {
-                    //        desc: 'This is option Cc',
-                    //        value: 'c'
-                    //    },
-                    //    {
-                    //        desc: 'This is option Dd',
-                    //        value: 'd'
-                    //    }
-                    //]
+                    parkingNumbers:ent,
+                    parkingNumber:parkingNumber
                 })
 
             });
     }
 
 
-    //onhandlechange(e) {
-    //    var parkingLot = e.target.value;
-    //    this.getParkingNumber(parkingLot);
-    //    this.setState({value: parkingLot});
-    //    e.preventDefault();
-    //
-    //}
-
     onLotChange(change) {
         var parkingLot = change.newValue;
-        var url = "http://localhost:8080/parkinglot/"+parkingLot+"/openslots";
-        var axios = require('axios');
-        axios.get(url)
-            .then(res => {
-                var parkingNumbers = res.data;
+        this.setState({
+            parkingLotId:parkingLot
+        });
+        this.getParkingNumber(parkingLot);
+    }
 
-                var ent=[];
-                for (var i = 0; i < parkingNumbers.length; i++) {
-                    ent.push({value: + parkingNumbers[i]});
-                }
-
-                this.setState({
-                    parkingNumbers: ent
-                });
-            })
+    setParkingNumber(change){
+        var parkingNumber = change.newValue;
+        this.setState({
+            parkingNumber:parkingNumber
+        });
     }
 
 
@@ -188,28 +201,29 @@ class ParkingReservationPage extends React.Component {
         });
 
 
-        //function onLotChange(change) {
-        //    var parkingLot = change.newValue;
-        //    this.getParkingNumber(parkingLot);
-        //    this.setState({value: parkingLot});
-        //}
-
         return (
             <div className="jumbotron">
                 <h2>Parking Reservation Page</h2>
-                <form className="form-horizontal" action='/' method="GET">
+                <form className="form-horizontal" onSubmit={this.onSubmit}>
                     <fieldset>
                         <div id="legend">
+                            <legend className="">
+                                <h3>{
+                                    this.state.error ? <Error/> :""
+                                }
+                                </h3>
+                            </legend>
                             <legend className=""><h3>Reservation Form</h3></legend>
                         </div>
                         <div className="form-group">
                             <label className="control-label col-sm-4" htmlFor="lot">Parking Lot</label>
                             <div className="col-sm-8">
-                                <Dropdown id='myDropdown'
+                                <Dropdown id='parkingLotId'
                                           options={this.state.parkingLots}
                                           labelField='name'
                                           valueField='id'
                                           onChange={this.onLotChange}
+                                          handler = {this.handler}
                                     />
                             </div>
                         </div>
@@ -220,10 +234,12 @@ class ParkingReservationPage extends React.Component {
                         <div className="form-group">
                             <label className="control-label col-sm-4" htmlFor="slot">Parking Slot Number</label>
                             <div className="col-sm-8">
-                                <Dropdown id='myDropdown'
+                                <Dropdown id='parkingNumber'
                                           options={this.state.parkingNumbers}
                                           labelField='value'
                                           valueField='value'
+                                          onChange={this.setParkingNumber}
+                                          handler = {this.handler}
                                     />
 
                             </div>
@@ -239,6 +255,12 @@ class ParkingReservationPage extends React.Component {
                 </form>
             </div>
         );
+    }
+}
+
+class Error extends React.Component {
+    render() {
+        return (<div>Error : Cannot Reserve Parking.Please Try Again. </div>);
     }
 }
 
